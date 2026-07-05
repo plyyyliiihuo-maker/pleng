@@ -1,0 +1,59 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // Helper functions
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(uid) {
+      return isAuthenticated() && request.auth.uid == uid;
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() > 0 && id.size() <= 128;
+    }
+
+    function isValidTransaction(data) {
+      return data.keys().hasAll(['id', 'uid', 'amount', 'type', 'category', 'date', 'createdAt']) &&
+             data.id is string &&
+             data.id.size() > 0 &&
+             data.uid == request.auth.uid &&
+             data.amount is number &&
+             (data.type == 'income' || data.type == 'expense') &&
+             data.category is string &&
+             data.category.size() > 0 &&
+             data.category.size() <= 50 &&
+             data.date is string &&
+             data.date.size() > 0 &&
+             data.createdAt is string;
+    }
+
+    function isValidBudget(data) {
+      return data.keys().hasAll(['id', 'uid', 'month', 'limit']) &&
+             data.id is string &&
+             data.id.size() > 0 &&
+             data.uid == request.auth.uid &&
+             data.month is string &&
+             data.month.size() > 0 &&
+             data.limit is number;
+    }
+
+    // Collection: Transactions
+    match /transactions/{transactionId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidId(transactionId) && isValidTransaction(request.resource.data);
+      allow update: if isAuthenticated() && isValidId(transactionId) && resource.data.uid == request.auth.uid && isValidTransaction(request.resource.data);
+      allow delete: if isAuthenticated() && isValidId(transactionId) && resource.data.uid == request.auth.uid;
+    }
+
+    // Collection: Budgets
+    match /budgets/{budgetId} {
+      allow read: if isAuthenticated() && resource.data.uid == request.auth.uid;
+      allow create: if isAuthenticated() && isValidId(budgetId) && isValidBudget(request.resource.data);
+      allow update: if isAuthenticated() && isValidId(budgetId) && resource.data.uid == request.auth.uid && isValidBudget(request.resource.data);
+      allow delete: if isAuthenticated() && isValidId(budgetId) && resource.data.uid == request.auth.uid;
+    }
+  }
+}

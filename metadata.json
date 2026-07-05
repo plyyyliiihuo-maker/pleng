@@ -1,0 +1,8 @@
+{
+  "name": "Personal Finance Manager",
+  "description": "แอปพลิเคชันสำหรับจัดการและวิเคราะห์รายรับรายจ่ายรายเดือน พร้อมระบบจัดเก็บข้อมูลบนคลาวด์และโหมดใช้งานบัญชีทดลอง",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
